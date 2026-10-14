@@ -3,14 +3,16 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Tag van je geïnstalleerde versie (bv. v0.1.2)
+        description: Tag van je geïnstalleerde versie (bv. v0.1.9)
         required: true
+        default: v0.1.9
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: jamesstringer90/appsandbox
           ref: ${{ inputs.ref }}
       - uses: microsoft/setup-msbuild@v2
       - name: Patch nested-virt gate
