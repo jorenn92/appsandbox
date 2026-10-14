@@ -1,0 +1,26 @@
+name: build-core
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag van je geïnstalleerde versie (bv. v0.1.2)
+        required: true
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: microsoft/setup-msbuild@v2
+      - name: Patch nested-virt gate
+        shell: pwsh
+        run: |
+          $f = 'src\backend_win\hcs_vm.c'
+          (gc $f) -replace 'if \(hcs_nested_virt_supported\(\)\)', 'if (TRUE)' | sc $f
+          if (-not (sls -Path $f -Pattern 'if \(TRUE\)' -Quiet)) { throw 'Patch niet toegepast' }
+      - run: msbuild AppSandboxCore.vcxproj /p:Configuration=Release /p:Platform=x64 /m /v:minimal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appsandbox_core
+          path: '**/appsandbox_core.dll'
